@@ -1,4 +1,6 @@
 <script>
+import VueMultiselect from 'vue-multiselect'
+
 export default {
   data() {
         return {
@@ -6,10 +8,19 @@ export default {
           results: [],
           enteredValue: '',
           isLoading: false,
+          selectedComplex: [],
+          complexData: [],
           error: null
         };
       },
+  created() {
+    this.loadComplexData();
+  },
+  components: { VueMultiselect },
   methods: {
+    customLabel (option) {
+      return `${option.fond_name}`
+    },
     addWord() {
       if (this.enteredValue !== ''){
         this.words.push(this.enteredValue);
@@ -25,13 +36,13 @@ export default {
       } else {
         this.isLoading = true;
         this.error = null;
-        fetch('https://archimista-api.provincia.lucca.it/archi-search', {
-        //fetch('http://127.0.0.1:5000/archi-search', {
+        //fetch('https://archimista-api.provincia.lucca.it/archi-search', {
+        fetch('http://127.0.0.1:5000/archi-search', {
           method: 'POST',
           headers: {
             'Content-Type' : 'application/json'
           },
-          body: JSON.stringify ({ words: this.words, logic: logic }) 
+          body: JSON.stringify ({ words: this.words, logic: logic, complex: this.selectedComplex }) 
         }).then((response) => {
           if (response.ok) {
             return response.json()
@@ -67,7 +78,35 @@ export default {
           this.error = error;
         });
       }
+    },
+    async loadComplexData() {
+    try {
+      
+      const response = await fetch('https://archimista-api.provincia.lucca.it/archi-complexsearch');
+      //const response = await fetch('http://127.0.0.1:5000/archi-complex');
+      if (!response.ok) {
+        throw new Error('Errore nel caricamento dei dati dei complessi');
+      }
+      const data = await response.json();
+      const complexData = [];
+      if (data.status === 'ok') {
+        for (const idx in data.data) {
+          complexData.push({
+            fond_id: data.data[idx].fond_id, 
+            fond_name: data.data[idx].fond_name
+          })
+        }
+
+        this.complexData = complexData;
+
+      } else {
+        throw new Error(data.message);
+      } 
+    } catch (error) {
+      console.log(error);
+      this.error = error;
     }
+  },
   }
 };
 </script>
@@ -76,6 +115,12 @@ export default {
   <div class="title">Ricerca avanzata unit&agrave; <span class="version">(v 1.0.0-b1)</span></div>
 
   <div class="search">
+    <div class="complex-select">
+      <label for="text">Restringi la ricerca ai seguenti complessi:</label>
+      <VueMultiselect id="complex" :max-height="500" v-model="selectedComplex" placeholder="Seleziona i complessi" select-label="" :options="complexData" :close-on-select="false" :multiple="true" label="fond_name" track-by="fond_name" :allow-empty="true" >
+      </VueMultiselect>
+    </div>
+    
     <label for="text">Parola da ricercare: 
       <input type="text" id="word" v-model="enteredValue"/>
     </label>
@@ -119,6 +164,28 @@ export default {
       
 </template>
 
+<style src="vue-multiselect/dist/vue-multiselect.css"></style>
+<style>
+ #app .complex-select .multiselect__tag {
+    background-color: #4c62d7;
+  }
+
+  #app .complex-select .multiselect__option--selected.multiselect__option--highlight {
+    background-color: rgb(255, 172, 172);
+  }
+
+  #app .complex-select .multiselect__option--selected.multiselect__option--highlight::after {
+    background-color: rgb(255, 172, 172);
+  }
+
+  #app .complex-select .multiselect__option--highlight::after {
+    background-color: #4c62d7; 
+  }
+
+  #app .complex-select .multiselect__option--highlight {
+    background-color: #4c62d7; 
+  }
+</style>
 <style scoped>
   @import url('https://fonts.googleapis.com/css2?family=Jost&display=swap');
 
@@ -222,7 +289,15 @@ export default {
 
   #app .words .search-button button {
     margin-left :1rem;
+    margin-top: 1rem;
   }
 
-  
+  #app .complex-select {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1rem;
+  }
+
+   
 </style>
