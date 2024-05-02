@@ -36,8 +36,8 @@ export default {
       } else {
         this.isLoading = true;
         this.error = null;
-        //fetch('https://archimista-api.provincia.lucca.it/archi-search', {
-        fetch('http://127.0.0.1:5000/archi-search', {
+        fetch('https://archimista-api.provincia.lucca.it/archi-search', {
+        //fetch('http://127.0.0.1:5000/archi-search', {
           method: 'POST',
           headers: {
             'Content-Type' : 'application/json'
@@ -82,7 +82,7 @@ export default {
     async loadComplexData() {
     try {
       
-      const response = await fetch('https://archimista-api.provincia.lucca.it/archi-complexsearch');
+      const response = await fetch('https://archimista-api.provincia.lucca.it/archi-complex');
       //const response = await fetch('http://127.0.0.1:5000/archi-complex');
       if (!response.ok) {
         throw new Error('Errore nel caricamento dei dati dei complessi');
@@ -112,7 +112,7 @@ export default {
 </script>
 
 <template>
-  <div class="title">Ricerca avanzata unit&agrave; <span class="version">(v 1.0.0-b1)</span></div>
+  <div class="title">Ricerca avanzata unit&agrave; <span class="version">(v 1.0.1)</span></div>
 
   <div class="search">
     <div class="complex-select">
